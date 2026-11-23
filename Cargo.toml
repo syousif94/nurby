@@ -1,0 +1,38 @@
+[workspace]
+resolver = "3"
+members = ["crates/nurby-core", "crates/uniffi-bindgen"]
+# SolidCraft is vendored whole (its own workspace); nurby-core uses its crates by path.
+exclude = ["vendor"]
+
+[workspace.package]
+edition = "2024"
+license = "MIT OR Apache-2.0"
+version = "0.1.0"
+
+# Same build settings as SolidCraft: the kernel is far too slow unoptimised.
+[profile.dev.package."*"]
+opt-level = 2
+debug = false
+
+[profile.dev]
+opt-level = 1
+debug = "line-tables-only"
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 16
+debug = "line-tables-only"
+
+# SolidCraft's vendored crate fixes, so its crates resolve exactly as in its own workspace.
+[patch.crates-io]
+ecolor = { path = "vendor/solidcraft/vendor/egui/crates/ecolor" }
+eframe = { path = "vendor/solidcraft/vendor/egui/crates/eframe" }
+egui = { path = "vendor/solidcraft/vendor/egui/crates/egui" }
+egui-wgpu = { path = "vendor/solidcraft/vendor/egui/crates/egui-wgpu" }
+egui-winit = { path = "vendor/solidcraft/vendor/egui/crates/egui-winit" }
+egui_glow = { path = "vendor/solidcraft/vendor/egui/crates/egui_glow" }
+emath = { path = "vendor/solidcraft/vendor/egui/crates/emath" }
+epaint = { path = "vendor/solidcraft/vendor/egui/crates/epaint" }
+epaint_default_fonts = { path = "vendor/solidcraft/vendor/egui/crates/epaint_default_fonts" }
+winit = { path = "vendor/solidcraft/vendor/winit" }

@@ -1,0 +1,16 @@
+[package]
+name = "nurby-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Nurby core: an in-process SolidCraft session behind SolidCraft's MCP tools, plus display meshes for the viewport."
+
+[lib]
+crate-type = ["lib", "staticlib"]
+
+[dependencies]
+uniffi = "0.32"
+thiserror = "2"
+serde_json = "1"
+solidcraft-mcp = { path = "../../vendor/solidcraft/crates/mcp" }
+solidcraft-engine = { path = "../../vendor/solidcraft/crates/engine" }

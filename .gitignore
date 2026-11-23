@@ -1,0 +1,10 @@
+/target
+/vendor/solidcraft/target
+ios/NurbyCore.xcframework
+ios/Nurby/Generated/
+ios/Nurby.xcodeproj
+.DS_Store
+xcuserdata/
+ios/build/
+build/
+Payload/

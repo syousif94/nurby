@@ -1,0 +1,6 @@
+# SelfStore: apps this repo publishes. Format: https://syousif94.github.io/SelfStore/docs.html#selfstore-yml
+version: 1
+branches: [main]
+apps:
+  - name: Nurby
+    ipa: selfstore/Nurby.ipa
