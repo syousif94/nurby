@@ -75,12 +75,26 @@ struct OperationsBar: View {
     }
 }
 
-private struct OpButtonStyle: ButtonStyle {
+/// A tool button in a bar: pressing it tints it and shows its name in a glass pill above it.
+/// `highlight: false` leaves the look to the label (the sketch bar's tools draw their own state)
+/// and just dims it while pressed.
+struct OpButtonStyle: ButtonStyle {
     let name: String
-    func makeBody(configuration: Configuration) -> some View {
+    var highlight = true
+    func makeBody(configuration: Configuration) -> some View { OpButtonBody(configuration: configuration, name: name, highlight: highlight) }
+
+    /// A custom style loses the system's dimming of disabled buttons, so it is done here.
+    private struct OpButtonBody: View {
+        let configuration: Configuration
+        let name: String
+        let highlight: Bool
+        @Environment(\.isEnabled) private var enabled
+        var body: some View {
         configuration.label
-            .background(configuration.isPressed ? Theme.accent.opacity(0.15) : .clear, in: .rect(cornerRadius: 19))
-            .foregroundStyle(configuration.isPressed ? Theme.accent : .primary)
+            .opacity(enabled ? 1 : 0.35)
+            .background(highlight && configuration.isPressed ? Theme.accent.opacity(0.15) : .clear, in: .rect(cornerRadius: 19))
+            .foregroundStyle(highlight ? (configuration.isPressed ? Theme.accent : .primary) : .primary)
+            .opacity(!highlight && configuration.isPressed ? 0.6 : 1)
             .overlay(alignment: .top) {
                 if configuration.isPressed {
                     Text(name).font(.footnote.weight(.semibold))
@@ -90,5 +104,6 @@ private struct OpButtonStyle: ButtonStyle {
                         .offset(y: -50)
                 }
             }
+        }
     }
 }

@@ -26,11 +26,12 @@ struct AgentPanel<Footer: View>: View {
                     }
                     .tint(Theme.agent)
                 }
+            } else if !agent.hasKey {
+                // The intro scrolls under the header, from the panel's top edge down.
+                connect.padding(-12).overlay(alignment: .top) { header }
             } else {
             header
-            if !agent.hasKey {
-                connect
-            } else {
+            do {
                 ScrollViewReader { proxy in
                     ScrollView {
                         VStack(alignment: .leading, spacing: 10) {
@@ -59,6 +60,7 @@ struct AgentPanel<Footer: View>: View {
             }
         }
         .padding(12)
+        .clipShape(.rect(cornerRadius: Theme.panelRadius, style: .continuous))
         .glassEffect(in: .rect(cornerRadius: Theme.panelRadius))
     }
 
@@ -85,6 +87,17 @@ struct AgentPanel<Footer: View>: View {
 
     /// No key yet: what the agent is and how to connect it.
     private var connect: some View {
+        // Scrolls when the panel is shorter than it (a low dock), instead of growing the panel
+        // over the tools; centred when there is room.
+        GeometryReader { g in
+            ScrollView {
+                connectContent.frame(maxWidth: .infinity, minHeight: g.size.height)
+            }
+            .scrollBounceBehavior(.basedOnSize)
+        }
+    }
+
+    private var connectContent: some View {
         VStack(spacing: 14) {
             Spacer(minLength: 0)
             ZStack {
@@ -105,8 +118,8 @@ struct AgentPanel<Footer: View>: View {
             }
             Spacer(minLength: 0)
         }
-        .padding(.horizontal, 16)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(.horizontal, 28)
+        .padding(.vertical, 56)   // clear of the header at the top, even at the panel's corners below
     }
 
     private var welcome: some View {

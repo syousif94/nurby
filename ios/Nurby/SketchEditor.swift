@@ -624,6 +624,7 @@ struct SketchBar: View {
                 Image(systemName: "xmark").font(.system(size: 16, weight: .semibold))
                     .frame(width: 36, height: 36).background(Color.primary.opacity(0.06), in: .circle)
             }
+            .buttonStyle(OpButtonStyle(name: "Cancel sketch", highlight: false))
             .accessibilityLabel("Cancel sketch")
             Divider().frame(height: 28)
             ForEach(SketchController.Tool.allCases) { t in
@@ -632,6 +633,7 @@ struct SketchBar: View {
                         .background(controller.tool == t ? Theme.accent.opacity(0.18) : .clear, in: .rect(cornerRadius: 16))
                         .foregroundStyle(controller.tool == t ? Theme.accent : .primary)
                 }
+                .buttonStyle(OpButtonStyle(name: t.label, highlight: false))
                 .accessibilityLabel(t.label)
             }
             // Construction mode: what's drawn next is reference geometry.
@@ -640,6 +642,7 @@ struct SketchBar: View {
                     .background(controller.construction ? Theme.accent.opacity(0.18) : .clear, in: .rect(cornerRadius: 16))
                     .foregroundStyle(controller.construction ? Theme.accent : .primary)
             }
+            .buttonStyle(OpButtonStyle(name: "Construction", highlight: false))
             .accessibilityLabel("Construction geometry")
             .accessibilityValue(controller.construction ? "On" : "Off")
             Divider().frame(height: 28)
@@ -653,6 +656,7 @@ struct SketchBar: View {
                 .font(.subheadline.weight(.semibold))
             }
             Button { startDimension() } label: { Image(systemName: "ruler").frame(width: 36, height: 44) }
+                .buttonStyle(OpButtonStyle(name: "Dimension", highlight: false))
                 .disabled(!canDimension).accessibilityLabel("Dimension")
             Menu {
                 let rules = self.rules
@@ -671,12 +675,14 @@ struct SketchBar: View {
                 let ids = deletable; controller.picked = []
                 Task { await design.deleteSketchCurves(ids) }
             } label: { Image(systemName: "trash").frame(width: 36, height: 44) }
+                .buttonStyle(OpButtonStyle(name: "Delete", highlight: false))
                 .disabled(deletable.isEmpty).accessibilityLabel("Delete")
             Divider().frame(height: 28)
             Button { Task { await design.finishSketch() } } label: {
                 Image(systemName: "checkmark").font(.system(size: 16, weight: .bold)).foregroundStyle(.white)
                     .frame(width: 36, height: 36).background(Theme.accent, in: .circle)
             }
+            .buttonStyle(OpButtonStyle(name: "Finish sketch", highlight: false))
             .accessibilityLabel("Finish sketch")
         }
         .tint(.primary)

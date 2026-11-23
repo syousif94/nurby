@@ -36,6 +36,10 @@ struct StudioView: View {
     @State private var gapAxis: Axis?
     /// The studio's size (decides side or bottom panels).
     @State private var screen: CGSize = .zero
+    /// The size that decides side or bottom panels. The keyboard shortens `screen` (an upright
+    /// iPad drops below its width), which would flip the layout mid-tap and rebuild the field being
+    /// typed in, dismissing the keyboard; so a drop in height alone only counts once it isn't the keyboard.
+    @State private var layoutSize: CGSize = .zero
     /// The bottom panels' share of the screen height.
     @AppStorage("dockSplit") private var dockShare = 0.42
     @State private var dockStart: Double?
@@ -54,13 +58,14 @@ struct StudioView: View {
     private var narrow: Bool { compact || (screen.width > 0 && screen.width < 700) }
     /// The sidebar is put away, so its button shows.
     private var sidebarAway: Bool { docked ? dockOffset > 0 : sidebarOffset > 0 }
-    /// The agent shrinks to its composer while editing, except on its own page of the paged dock
-    /// (narrow screens), where it has the room.
-    private var agentCollapsed: Bool { editing && !(docked && dockPaged) }
+    /// The agent shrinks to its composer while editing, but only in the side sidebar, where it is
+    /// stacked under the editor and the two share the height. Along the bottom the panels sit side
+    /// by side (or on their own pages), so the chat keeps its full height.
+    private var agentCollapsed: Bool { editing && !docked }
     /// A sketch or a feature panel is open: the agent shrinks to its composer.
     private var editing: Bool { design.sketch != nil || panel != nil }
     /// Panels along the bottom, side by side: the window is taller than it is wide.
-    private var docked: Bool { screen.height > screen.width }
+    private var docked: Bool { layoutSize.height > layoutSize.width }
     /// Typing with the panels along the bottom: the keyboard takes the room, so the tools step aside.
     private var typingDocked: Bool { docked && keyboardUp }
     /// Widest a bottom panel gets when they scroll sideways.
@@ -194,7 +199,17 @@ struct StudioView: View {
         }
         .onChange(of: design.originIDs) { _, ids in if !ids.isEmpty && panel == nil { drawerTab = .features } }
         .onChange(of: design.sketch?.points) { _, pts in sketcher.snapPoints = pts ?? [] }
-        .onGeometryChange(for: CGSize.self) { $0.size } action: { screen = $0 }
+        .onGeometryChange(for: CGSize.self) { $0.size } action: { size in
+            screen = size
+            if size.width != layoutSize.width || size.height >= layoutSize.height {
+                layoutSize = size
+            } else {
+                // Only shorter: the keyboard, unless it is still down a moment later.
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    if !keyboardUp && screen.height < layoutSize.height { layoutSize = screen }
+                }
+            }
+        }
         .onGeometryChange(for: EdgeInsets.self) { $0.safeAreaInsets } action: { insets = $0 }
         .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in keyboardUp = true }
         .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in keyboardUp = false }
@@ -339,8 +354,9 @@ struct StudioView: View {
                     .padding(.horizontal, -margin)   // run to the screen edges
                 } else {
                     HStack(spacing: gap) {
-                        editor.frame(maxWidth: .infinity)
-                        dockAgent.frame(maxWidth: .infinity)
+                        // Pinned to the dock's height so neither grows up over the tools.
+                        editor.frame(maxWidth: .infinity).frame(height: dockHeight)
+                        dockAgent.frame(maxWidth: .infinity).frame(height: dockHeight)
                     }
                 }
             }

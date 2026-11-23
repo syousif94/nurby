@@ -31,7 +31,8 @@ struct DrawerView: View {
     @State private var dropTarget: String?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 0) {
+          VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 8) {
                 Button(action: goHome) { HeaderIcon(symbol: "house") }
                     .accessibilityLabel("Home")
@@ -113,18 +114,28 @@ struct DrawerView: View {
                 .background(Theme.accent.opacity(0.1), in: .rect(cornerRadius: 14, style: .continuous))
             }
 
+          }
+          .padding([.horizontal, .top], 12)
+
+            // The list runs to the panel's edges and up to the tabs; only its content is inset.
             ScrollView {
-                switch tab {
-                case .features: featureList
-                case .parameters: parameterList
-                case .versions: VersionsView(design: design)
+                Group {
+                    switch tab {
+                    case .features: featureList
+                    case .parameters: parameterList
+                    case .versions: VersionsView(design: design)
+                    }
+                }
+                .padding(12)
+            }
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                if let err = design.error {
+                    Text(err).font(.caption).foregroundStyle(Theme.conflict).lineLimit(4)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(12)
                 }
             }
-            if let err = design.error {
-                Text(err).font(.caption).foregroundStyle(Theme.conflict).lineLimit(4)
-            }
         }
-        .padding(12)
         .sheet(item: $shareURL) { ShareSheet(url: $0) }
         .alert("Rename design", isPresented: $renaming) {
             TextField("Name", text: $newName)
@@ -325,6 +336,11 @@ struct DrawerView: View {
 
     private var parameterList: some View {
         VStack(spacing: 0) {
+            Button { paramName = ""; paramExpr = ""; addingParameter = true } label: {
+                Label("Add parameter", systemImage: "plus").font(.subheadline).frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 8).frame(height: 34)
+            }
+            .tint(Theme.accent)
             if design.parameters.isEmpty { empty("No parameters yet. Parameters are named values you can use in any dimension.") }
             ForEach(design.parameters) { p in
                 Button { editing = p; editText = p.expr } label: {
@@ -342,11 +358,6 @@ struct DrawerView: View {
                     Button("Delete", systemImage: "trash", role: .destructive) { Task { await design.deleteParameter(p.name) } }
                 }
             }
-            Button { paramName = ""; paramExpr = ""; addingParameter = true } label: {
-                Label("Add parameter", systemImage: "plus").font(.subheadline).frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, 8).frame(height: 34)
-            }
-            .tint(Theme.accent)
         }
     }
 

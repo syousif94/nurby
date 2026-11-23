@@ -103,19 +103,29 @@ struct StartView: View {
         .glassEffect(in: .rect(cornerRadius: 26))
     }
 
+    /// Scrolls sideways when the buttons don't fit, running to the screen edges (the page's
+    /// side padding becomes the scroll's content margin, so they still line up at rest).
     private var actions: some View {
-        HStack(spacing: 12) {
-            actionButton("New design", "plus") { run { await design.newDesign() } }
-            actionButton("Import file", "square.and.arrow.down") { importing = true }
-            if let last = designs.first {
-                actionButton("Continue \(last.name)", "arrow.uturn.right") { openDesign(last) }
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 12) {
+                actionButton("New design", "plus") { run { await design.newDesign() } }
+                actionButton("Import file", "square.and.arrow.down") { importing = true }
+                if let last = designs.first {
+                    actionButton("Continue \(last.name)", "arrow.uturn.right") { openDesign(last) }
+                }
             }
+            .padding(.vertical, 8)   // room for the glass shadows
         }
+        .contentMargins(.horizontal, 24, for: .scrollContent)
+        .scrollBounceBehavior(.basedOnSize, axes: .horizontal)
+        .padding(.horizontal, -24)
+        .padding(.vertical, -8)
     }
 
     private func actionButton(_ title: String, _ symbol: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Label(title, systemImage: symbol).font(.subheadline.weight(.semibold)).lineLimit(1)
+                .fixedSize()
                 .padding(.horizontal, 16).frame(height: 44)
         }
         .glassEffect(.regular.interactive(), in: .capsule)
